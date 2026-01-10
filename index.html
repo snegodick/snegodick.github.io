@@ -61,7 +61,6 @@ Type 'help' for available commands.</div>
         window.addEventListener('mousemove', e => {
             glow.style.left = e.clientX + 'px';
             glow.style.top = e.clientY + 'px';
-            // Optional: subtle flicker effect on movement
             glow.style.opacity = (Math.random() * 0.1 + 0.2).toString();
         });
 
