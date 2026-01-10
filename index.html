@@ -47,7 +47,20 @@
             margin-top: 10px;
         }
         .link-output { color: #ffff00; text-decoration: underline; cursor: pointer; word-break: break-all; }
+        
+        .qr-container { 
+            background: #00ff41; 
+            padding: 10px; 
+            display: inline-block; 
+            margin-top: 10px;
+            border: 2px solid #00ff41;
+        }
+        .qr-container canvas, .qr-container img {
+            /* This makes the QR code look like it's part of the terminal */
+            filter: brightness(0.5) contrast(2);
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div class="crt-overlay"></div>
@@ -203,7 +216,7 @@ Type 'help' for available commands.</div>
             const parts = cmd.split(' ');
             const command = parts[0].toLowerCase();
             switch(command) {
-                case 'help': out('Available: ls, cd, cat, uname, ifconfig, ping, df, ps, w, whoami, date, uptime, echo, clear, exit, new'); break;
+                case 'help': out('Available: ls, cd, cat, uname, ifconfig, ping, df, ps, w, whoami, date, uptime, echo, clear, exit, new, qr'); break;
                 case 'ls': out(Object.keys(currentDir).join('  ')); break;
                 case 'uname': out('OVRNET-OS 1.0.0-release x86_64'); break;
                 case 'whoami': out('root'); break;
@@ -224,6 +237,28 @@ Type 'help' for available commands.</div>
                     out('Entering PASTE mode. Type your text in the box above. Press Ctrl+Enter to generate link.');
                     pasteArea.style.display = 'block';
                     pasteArea.focus();
+                    break;
+                case 'qr':
+                    const currentUrl = window.location.href;
+                    if (!window.location.hash) {
+                        out('Error: No paste data found. Create a paste with "new" first.');
+                        break;
+                    }
+                    out('Generating QR Code for current paste...');
+                    
+                    const qrDiv = document.createElement('div');
+                    qrDiv.className = 'qr-container';
+                    history.appendChild(qrDiv);
+                    
+                    new QRCode(qrDiv, {
+                        text: currentUrl,
+                        width: 128,
+                        height: 128,
+                        colorDark : "#000000",
+                        colorLight : "#00ff41",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                    out('Scan to open this paste on mobile.');
                     break;
                 case 'exit': out('Session terminated. Please close your browser.'); input.disabled = true; break;
                 case 'clear': history.innerHTML = ''; break;
