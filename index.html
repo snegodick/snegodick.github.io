@@ -60,7 +60,7 @@
             filter: brightness(0.5) contrast(2);
         }
     </style>
-    <script src="qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div class="crt-overlay"></div>
@@ -216,7 +216,7 @@ Type 'help' for available commands.</div>
             const parts = cmd.split(' ');
             const command = parts[0].toLowerCase();
             switch(command) {
-                case 'help': out('Available: ls, cd, cat, uname, ifconfig, ping, df, ps, w, whoami, date, uptime, echo, clear, exit, new, qr'); break;
+                case 'help': out('Available: ls, cd, cat, uname, ifconfig, ping, df, ps, w, whoami, date, uptime, echo, clear, exit, new, qr [text]'); break;
                 case 'ls': out(Object.keys(currentDir).join('  ')); break;
                 case 'uname': out('OVRNET-OS 1.0.0-release x86_64'); break;
                 case 'whoami': out('root'); break;
@@ -239,26 +239,33 @@ Type 'help' for available commands.</div>
                     pasteArea.focus();
                     break;
                 case 'qr':
-                    const currentUrl = window.location.href;
-                    if (!window.location.hash) {
-                        out('Error: No paste data found. Create a paste with "new" first.');
+                    const qrText = parts.slice(1).join(' ');
+                    const targetData = qrText || window.location.href;
+
+                    if (!qrText && !window.location.hash) {
+                        out('Error: No text provided and no paste data found. Usage: qr [text] or create a paste first.');
                         break;
                     }
-                    out('Generating QR Code for current paste...');
+
+                    out(`Generating QR Code for: ${qrText || 'current paste URL'}...`);
                     
                     const qrDiv = document.createElement('div');
                     qrDiv.className = 'qr-container';
                     history.appendChild(qrDiv);
                     
-                    new QRCode(qrDiv, {
-                        text: currentUrl,
-                        width: 128,
-                        height: 128,
-                        colorDark : "#000000",
-                        colorLight : "#00ff41",
-                        correctLevel : QRCode.CorrectLevel.H
-                    });
-                    out('Scan to open this paste on mobile.');
+                    try {
+                        new QRCode(qrDiv, {
+                            text: targetData,
+                            width: 128,
+                            height: 128,
+                            colorDark : "#000000",
+                            colorLight : "#00ff41",
+                            correctLevel : QRCode.CorrectLevel.H
+                        });
+                        out('QR Code generated successfully.');
+                    } catch (err) {
+                        out('Error: Failed to generate QR code. Text might be too long.');
+                    }
                     break;
                 case 'exit': out('Session terminated. Please close your browser.'); input.disabled = true; break;
                 case 'clear': history.innerHTML = ''; break;
