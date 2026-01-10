@@ -216,16 +216,12 @@ Type 'help' for available commands.</div>
             const parts = cmd.split(' ');
             const command = parts[0].toLowerCase();
             switch(command) {
-                case 'help': out('Available: ls, cd, cat, uname, ifconfig, ping, df, ps, w, whoami, date, uptime, echo, clear, exit, new, qr [text]'); break;
+                case 'help': out('Available: ls, cat, uname, ifconfig, ps, w, date, echo, clear, exit, new, qr [text]'); break;
                 case 'ls': out(Object.keys(currentDir).join('  ')); break;
                 case 'uname': out('OVRNET-OS 1.0.0-release x86_64'); break;
-                case 'whoami': out('root'); break;
                 case 'date': out(new Date().toString()); break;
-                case 'uptime': out('up 42 days, 14:23, 1 user, load average: 0.08, 0.03, 0.01'); break;
                 case 'echo': out(parts.slice(1).join(' ')); break;
                 case 'ifconfig': out('eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 1500\ninet 192.168.1.101 netmask 255.255.255.0'); break;
-                case 'ping': out('PING ovrnet.com (1.1.1.1): 56 data bytes\n64 bytes from 1.1.1.1: icmp_seq=0 ttl=64 time=1.02 ms'); break;
-                case 'df': out('Filesystem     Used  Available Capacity Mounted on\n/dev/sda1      42G   540G      8%       /'); break;
                 case 'ps': out('PID TTY          TIME CMD\n 124 tty0     00:00:01 bash\n 542 tty0     00:00:00 ps'); break;
                 case 'w': out(' 12:00:01 up 42 days, 1 user, load average: 0.01'); break;
                 case 'cat': 
