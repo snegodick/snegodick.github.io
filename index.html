@@ -1,1 +1,114 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ovrnet.com // terminal</title>
+    <style>
+        body, html { margin: 0; padding: 0; background: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
+        #canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.3; }
+        .crt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 10; }
+        #terminal { padding: 20px; height: 90vh; overflow-y: auto; text-shadow: 0 0 5px #00ff41; }
+        .input-line { display: flex; align-items: center; }
+        #cmd-input { background: transparent; border: none; color: #00ff41; outline: none; font-family: inherit; font-size: 1rem; width: 100%; }
+        .prompt { color: #ff00ff; margin-right: 10px; }
+        .output { margin-bottom: 10px; white-space: pre-wrap; }
+        #cursor-glow { position: fixed; width: 200px; height: 200px; background: radial-gradient(circle, rgba(0,255,65,0.1) 0%, transparent 70%); pointer-events: none; transform: translate(-50%, -50%); z-index: 5; }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div id="cursor-glow"></div>
+    <canvas id="canvas"></canvas>
+    <div id="terminal">
+        <div class="output">OVRNET(tm) Kernel 1.0.9-p2 (tty0)
+Connecting to IRC... [OK]
+Type 'help' for available commands.</div>
+        <div id="history"></div>
+        <div class="input-line">
+            <span class="prompt">root@ovrnet:~#</span>
+            <input type="text" id="cmd-input" autofocus spellcheck="false">
+        </div>
+    </div>
+
+    <script>
+        // 1. Matrix Background
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#00ff41";
+            ctx.font = fontSize + "px monospace";
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 35);
+
+        // 2. Mouse Effect
+        const glow = document.getElementById('cursor-glow');
+        window.addEventListener('mousemove', e => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        // 3. Terminal Logic
+        const input = document.getElementById('cmd-input');
+        const history = document.getElementById('history');
+        const fs = {
+            'about.txt': 'OVRNET: The next generation of decentralized IRC networks.',
+            'contact.txt': 'IRC: #ovrnet on EFNet\nMail: admin@ovrnet.com',
+            'projects': { 'bot.sh': '#!/bin/bash\necho "Scanning..."', 'core.c': '// Kernel source' }
+        };
+        let currentDir = fs;
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = input.value.trim();
+                const line = document.createElement('div');
+                line.innerHTML = `<span class="prompt">root@ovrnet:~#</span> ${val}`;
+                history.appendChild(line);
+                processCmd(val);
+                input.value = '';
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        });
+
+        function out(text) {
+            const div = document.createElement('div');
+            div.className = 'output';
+            div.textContent = text;
+            history.appendChild(div);
+        }
+
+        function processCmd(cmd) {
+            const parts = cmd.split(' ');
+            const command = parts[0].toLowerCase();
+            switch(command) {
+                case 'help': out('Available: ls, cd, cat, uname, ifconfig, ping, df, ps, w, clear'); break;
+                case 'ls': out(Object.keys(currentDir).join('  ')); break;
+                case 'uname': out('OVRNET-OS 1.0.0-release x86_64'); break;
+                case 'ifconfig': out('eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 1500\ninet 192.168.1.101 netmask 255.255.255.0'); break;
+                case 'ping': out('PING ovrnet.com (1.1.1.1): 56 data bytes\n64 bytes from 1.1.1.1: icmp_seq=0 ttl=64 time=1.02 ms'); break;
+                case 'df': out('Filesystem     Used  Available Capacity Mounted on\n/dev/sda1      42G   540G      8%       /'); break;
+                case 'ps': out('PID TTY          TIME CMD\n 124 tty0     00:00:01 bash\n 542 tty0     00:00:00 ps'); break;
+                case 'w': out(' 12:00:01 up 42 days, 1 user, load average: 0.01'); break;
+                case 'cat': 
+                    const file = parts[1];
+                    out(currentDir[file] || 'File not found');
+                    break;
+                case 'clear': history.innerHTML = ''; break;
+                default: if(cmd) out(`command not found: ${command}`);
+            }
+        }
+    </script>
+</body>
+</html>
