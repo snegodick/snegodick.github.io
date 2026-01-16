@@ -126,7 +126,8 @@
             /* Removed fixed height and overflow to allow expansion */
         }
         .line-numbers {
-            padding: 10px 5px;
+            padding: 0 5px;
+            margin-top: 0;
             text-align: right;
             color: rgba(0, 255, 65, 0.4);
             font-family: inherit;
@@ -149,7 +150,7 @@
             font-size: 1rem;
             line-height: 1.5;
             outline: none;
-            padding: 10px;
+            padding: 0 10px;
             margin: 0;
             white-space: pre;
             overflow-x: auto;
@@ -443,10 +444,11 @@ Type 'help' for available commands.</div>
                 if (decoded.startsWith("Error:")) {
                     out(decoded);
                 } else {
-                    const lines = decoded.split('\n');
+                    const trimmedDecoded = decoded.trim();
+                    const lines = trimmedDecoded.split('\n');
                     const lineNumbersText = lines.map((_, i) => i + 1).join('\n');
                     
-                    const lang = detectLanguage(decoded);
+                    const lang = detectLanguage(trimmedDecoded);
                     const container = document.createElement('div');
                     container.className = 'paste-view-container';
                     container.innerHTML = `
@@ -456,7 +458,7 @@ Type 'help' for available commands.</div>
                         </div>
                         <div class="paste-view-body" style="overflow-x: auto;">
                             <div class="line-numbers">${lineNumbersText}</div>
-                            <pre id="paste-display" class="language-${lang}"><code class="language-${lang}">${escapeHtml(decoded)}</code></pre>
+                            <pre id="paste-display" class="language-${lang}"><code class="language-${lang}">${escapeHtml(trimmedDecoded)}</code></pre>
                         </div>
                     `;
                     history.appendChild(container);
