@@ -60,7 +60,8 @@
             height: 1.2rem; 
             background: #00ff41; 
             animation: blink 1s infinite; 
-            position: absolute;
+            display: inline-block;
+            margin-left: 2px;
             pointer-events: none;
         }
         @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
@@ -177,8 +178,8 @@ Type 'help' for available commands.</div>
         <div class="input-line">
             <span class="prompt">root@ovrnet:~#</span>
             <span id="cmd-mirror"></span>
-            <input type="text" id="cmd-input" autofocus spellcheck="false">
             <div class="cursor"></div>
+            <input type="text" id="cmd-input" autofocus spellcheck="false">
         </div>
     </div>
 
@@ -199,8 +200,6 @@ Type 'help' for available commands.</div>
 
         window.addEventListener('resize', () => {
             initMatrix();
-            // Recalculate prompt width on resize
-            cachedPromptWidth = document.querySelector('.prompt').getBoundingClientRect().width;
             updateCursorPos();
         });
         initMatrix();
@@ -241,7 +240,6 @@ Type 'help' for available commands.</div>
             'projects': { 'bot.sh': '#!/bin/bash\necho "Scanning..."', 'core.c': '// Kernel source' }
         };
         let currentDir = fs;
-        let cachedPromptWidth = 0;
 
         async function compressAndEncode(text) {
             const stream = new Blob([text]).stream();
@@ -283,14 +281,6 @@ Type 'help' for available commands.</div>
         function updateCursorPos() {
             // Update mirror text
             mirror.textContent = input.value;
-
-            // Calculate and cache prompt width if not set
-            if (cachedPromptWidth === 0) {
-                cachedPromptWidth = document.querySelector('.prompt').getBoundingClientRect().width;
-            }
-
-            // Position cursor after the mirror with a small offset (2px) to prevent overlapping the last char
-            cursor.style.left = (cachedPromptWidth + mirror.offsetWidth + 2) + 'px';
         }
 
         // Global click handler to maintain focus
