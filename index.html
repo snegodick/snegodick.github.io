@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>ovrnet.com // terminal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; background: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
         #canvas { 
@@ -129,9 +133,18 @@
             outline: none;
             padding: 10px;
             margin: 0;
-            white-space: pre;
-            /* Removed overflow-y: auto */
+            white-space: pre-wrap; /* Changed from pre to pre-wrap for better mobile view */
+            overflow: hidden;
         }
+
+        /* Adjust Prism colors to match terminal green */
+        pre[class*="language-"] { background: transparent !important; margin: 0; padding: 0; }
+        code[class*="language-"] { color: #00ff41 !important; text-shadow: none; font-family: inherit; }
+        .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string { background: transparent; }
+        .token.keyword, .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted { color: #ff00ff !important; } /* Magenta for keywords */
+        .token.string, .token.char, .token.attr-value, .token.builtin, .token.inserted { color: #ffff00 !important; } /* Yellow for strings */
+        .token.comment, .token.prolog, .token.doctype, .token.cdata { color: rgba(0, 255, 65, 0.4) !important; }
+        .token.function { color: #00ffff !important; } /* Cyan for functions */
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -365,6 +378,25 @@ Type 'help' for available commands.</div>
             }
         }
 
+        function detectLanguage(code) {
+            if (code.startsWith('#!') && code.includes('bash')) return 'bash';
+            if (code.startsWith('#!') && code.includes('python')) return 'python';
+            
+            const pythonKeywords = ['def ', 'import ', 'print(', 'if __name__ ==', 'elif '];
+            const bashKeywords = ['echo ', 'if [', 'then', 'fi', 'sudo ', 'apt-get'];
+            
+            if (pythonKeywords.some(k => code.includes(k))) return 'python';
+            if (bashKeywords.some(k => code.includes(k))) return 'bash';
+            
+            return 'plaintext';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         window.addEventListener('load', async () => {
             const hash = window.location.hash.substring(1);
             if (hash) {
@@ -381,19 +413,21 @@ Type 'help' for available commands.</div>
                     const lines = decoded.split('\n');
                     const lineNumbersText = lines.map((_, i) => i + 1).join('\n');
                     
+                    const lang = detectLanguage(decoded);
                     const container = document.createElement('div');
                     container.className = 'paste-view-container';
                     container.innerHTML = `
                         <div class="paste-view-header">
-                            <span>RAW_CONTENT.TXT</span>
+                            <span>RAW_CONTENT.TXT (${lang.toUpperCase()})</span>
                             <button class="copy-btn">COPY TO CLIPBOARD</button>
                         </div>
                         <div class="paste-view-body">
                             <div class="line-numbers">${lineNumbersText}</div>
-                            <div id="paste-display">${decoded}</div>
+                            <pre id="paste-display" class="language-${lang}"><code class="language-${lang}">${escapeHtml(decoded)}</code></pre>
                         </div>
                     `;
                     history.appendChild(container);
+                    Prism.highlightAllUnder(container);
 
                     const displayDiv = container.querySelector('#paste-display');
 
