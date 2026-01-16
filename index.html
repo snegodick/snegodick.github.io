@@ -115,10 +115,11 @@
             color: rgba(0, 255, 65, 0.4);
             font-family: inherit;
             font-size: 1rem;
+            line-height: 1.5;
             user-select: none; /* Prevents selection */
             border-right: 1px solid rgba(0, 255, 65, 0.2);
             background: rgba(0, 0, 0, 0.2);
-            min-width: 30px;
+            min-width: 35px;
             white-space: pre;
             overflow: hidden;
         }
@@ -130,11 +131,12 @@
             color: #00ff41;
             font-family: inherit;
             font-size: 1rem;
+            line-height: 1.5;
             outline: none;
             padding: 10px;
             margin: 0;
-            white-space: pre-wrap; /* Changed from pre to pre-wrap for better mobile view */
-            overflow: hidden;
+            white-space: pre;
+            overflow-x: auto;
         }
 
         /* Adjust Prism colors to match terminal green */
@@ -421,7 +423,7 @@ Type 'help' for available commands.</div>
                             <span>RAW_CONTENT.TXT (${lang.toUpperCase()})</span>
                             <button class="copy-btn">COPY TO CLIPBOARD</button>
                         </div>
-                        <div class="paste-view-body">
+                        <div class="paste-view-body" style="overflow-x: auto;">
                             <div class="line-numbers">${lineNumbersText}</div>
                             <pre id="paste-display" class="language-${lang}"><code class="language-${lang}">${escapeHtml(decoded)}</code></pre>
                         </div>
