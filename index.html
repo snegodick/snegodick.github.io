@@ -59,6 +59,44 @@
             /* This makes the QR code look like it's part of the terminal */
             filter: brightness(0.5) contrast(2);
         }
+
+        /* Paste View Styles */
+        .paste-view-container {
+            margin-top: 10px;
+            border: 1px solid #00ff41;
+            padding: 10px;
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .paste-view-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #00ff41;
+            padding-bottom: 5px;
+        }
+        .copy-btn {
+            background: #00ff41;
+            color: #050505;
+            border: none;
+            padding: 2px 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        .copy-btn:hover {
+            background: #ffffff;
+        }
+        #paste-display {
+            width: 100%;
+            height: 400px;
+            background: transparent;
+            border: none;
+            color: #00ff41;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            outline: none;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -264,7 +302,10 @@ Type 'help' for available commands.</div>
                     }
                     break;
                 case 'exit': out('Session terminated. Please close your browser.'); input.disabled = true; break;
-                case 'clear': history.innerHTML = ''; break;
+                case 'clear': 
+                    history.innerHTML = ''; 
+                    document.querySelector('.output').style.display = 'block'; // Ensure greeting can return
+                    break;
                 default: if(cmd) out(`command not found: ${command}`);
             }
         }
@@ -272,9 +313,34 @@ Type 'help' for available commands.</div>
         window.addEventListener('load', async () => {
             const hash = window.location.hash.substring(1);
             if (hash) {
+                // Clear initial terminal greeting for a clean look
+                document.querySelector('.output').style.display = 'none';
+                history.innerHTML = '';
+                
                 out('--- DECODING INCOMING PASTE ---');
                 const decoded = await decodeAndDecompress(hash);
-                out(decoded);
+                
+                if (decoded.startsWith("Error:")) {
+                    out(decoded);
+                } else {
+                    const container = document.createElement('div');
+                    container.className = 'paste-view-container';
+                    container.innerHTML = `
+                        <div class="paste-view-header">
+                            <span>RAW_CONTENT.TXT</span>
+                            <button class="copy-btn">COPY TO CLIPBOARD</button>
+                        </div>
+                        <textarea id="paste-display" readonly>${decoded}</textarea>
+                    `;
+                    history.appendChild(container);
+
+                    container.querySelector('.copy-btn').onclick = () => {
+                        const textArea = container.querySelector('#paste-display');
+                        textArea.select();
+                        navigator.clipboard.writeText(textArea.value);
+                        out('Content copied to clipboard!');
+                    };
+                }
                 out('--- END OF PASTE ---');
             }
         });
