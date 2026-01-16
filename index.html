@@ -357,12 +357,37 @@ Type 'help' for available commands.</div>
         function generatePhonetic(length) {
             const vowels = 'aeiou';
             const consonants = 'bcdfghjklmnpqrstvwxyz';
+            const digits = '0123456789';
             let word = '';
-            for (let i = 0; i < length; i++) {
-                word += (i % 2 === 0) 
+            
+            // Adjust length to leave room for at least one digit if length > 3
+            const wordLen = length > 3 ? length - 2 : length;
+            
+            for (let i = 0; i < wordLen; i++) {
+                let char = (i % 2 === 0) 
                     ? consonants.charAt(Math.floor(Math.random() * consonants.length))
                     : vowels.charAt(Math.floor(Math.random() * vowels.length));
+                
+                // Randomly capitalize (50% chance)
+                if (Math.random() > 0.5) char = char.toUpperCase();
+                word += char;
             }
+
+            // Ensure at least one uppercase and one lowercase if not already present
+            if (word === word.toLowerCase()) {
+                const idx = Math.floor(Math.random() * word.length);
+                word = word.substring(0, idx) + word[idx].toUpperCase() + word.substring(idx + 1);
+            }
+            if (word === word.toUpperCase()) {
+                const idx = Math.floor(Math.random() * word.length);
+                word = word.substring(0, idx) + word[idx].toLowerCase() + word.substring(idx + 1);
+            }
+
+            // Fill remaining length with digits
+            while (word.length < length) {
+                word += digits.charAt(Math.floor(Math.random() * digits.length));
+            }
+            
             return word;
         }
 
