@@ -52,7 +52,7 @@
             white-space: pre;
         }
 
-        .prompt { color: #ff00ff; margin-right: 10px; }
+        .prompt { color: #ff00ff; margin-right: 10px; font-family: inherit; font-size: 1rem; }
         .output { margin-bottom: 10px; white-space: pre-wrap; }
         #cursor-glow { position: fixed; width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,255,65,0.05) 0%, transparent 70%); pointer-events: none; transform: translate(-50%, -50%); will-change: transform; z-index: 5; }
         .cursor { 
@@ -289,8 +289,8 @@ Type 'help' for available commands.</div>
                 cachedPromptWidth = document.querySelector('.prompt').getBoundingClientRect().width;
             }
 
-            // Position cursor after the mirror
-            cursor.style.left = (cachedPromptWidth + mirror.offsetWidth) + 'px';
+            // Position cursor after the mirror with a small offset (2px) to prevent overlapping the last char
+            cursor.style.left = (cachedPromptWidth + mirror.offsetWidth + 2) + 'px';
         }
 
         // Global click handler to maintain focus
