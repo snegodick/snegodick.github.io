@@ -5,11 +5,17 @@
     <title>ovrnet.com // terminal</title>
     <style>
         body, html { margin: 0; padding: 0; background: #050505; color: #00ff41; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
-        #canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.3; }
-        .crt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 10; }
+        #canvas { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            z-index: -1; 
+            opacity: 0.5; /* Увеличил яркость, чтобы было лучше видно */
+        }
+        .crt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06)); background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 10; }
         #terminal { 
             padding: 20px; 
-            height: 100vh; 
+            height: 95vh; /* Оставляем 5% снизу свободными */
             overflow-y: auto; 
             text-shadow: 0 0 5px #00ff41; 
             box-sizing: border-box; 
@@ -151,19 +157,22 @@ Type 'help' for available commands.</div>
         // 1. Matrix Background
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]";
         const fontSize = 14;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
+        let columns, drops;
+
+        function initMatrix() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = Math.floor(canvas.width / fontSize);
+            drops = Array(columns).fill(1);
+        }
+
+        window.addEventListener('resize', initMatrix);
+        initMatrix();
+
         function drawMatrix() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillStyle = "rgba(5, 5, 5, 0.1)"; // Темный фон с небольшим шлейфом
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#00ff41";
             ctx.font = fontSize + "px monospace";
