@@ -242,6 +242,13 @@ Type 'help' for available commands.</div>
         };
         let currentDir = fs;
 
+        // Command History State
+        const cmdHistory = [];
+        let historyIndex = -1;
+
+        // Available commands for tab completion
+        const availableCommands = ['help', 'ls', 'cat', 'ps', 'w', 'date', 'echo', 'clear', 'exit', 'new', 'qr', 'pwgen'];
+
         async function compressAndEncode(text) {
             const stream = new Blob([text]).stream();
             const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
@@ -305,21 +312,77 @@ Type 'help' for available commands.</div>
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const val = input.value.trim();
-                const line = document.createElement('div');
-                
-                // Безопасный вывод: HTML для промпта, текст для ввода пользователя
-                line.innerHTML = '<span class="prompt">root@ovrnet:~#</span> ';
-                line.appendChild(document.createTextNode(val));
-                
-                history.appendChild(line);
-                processCmd(val);
+                if (val) {
+                    const line = document.createElement('div');
+                    
+                    // Безопасный вывод: HTML для промпта, текст для ввода пользователя
+                    line.innerHTML = '<span class="prompt">root@ovrnet:~#</span> ';
+                    line.appendChild(document.createTextNode(val));
+                    
+                    history.appendChild(line);
+                    
+                    // Add to history
+                    cmdHistory.push(val);
+                    historyIndex = -1;
+                    
+                    processCmd(val);
+                }
                 input.value = '';
                 updateCursorPos();
                 // Change window.scrollTo to terminal scroll
                 const term = document.getElementById('terminal');
                 term.scrollTop = term.scrollHeight;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (cmdHistory.length > 0) {
+                    if (historyIndex === -1) historyIndex = cmdHistory.length - 1;
+                    else if (historyIndex > 0) historyIndex--;
+                    
+                    input.value = cmdHistory[historyIndex];
+                    updateCursorPos();
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex !== -1) {
+                    if (historyIndex < cmdHistory.length - 1) {
+                        historyIndex++;
+                        input.value = cmdHistory[historyIndex];
+                    } else {
+                        historyIndex = -1;
+                        input.value = '';
+                    }
+                    updateCursorPos();
+                }
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                handleTabCompletion();
             }
         });
+
+        function handleTabCompletion() {
+            const val = input.value.trim();
+            const parts = val.split(/\s+/);
+            
+            if (parts.length === 1) {
+                // Complete command
+                const matches = availableCommands.filter(c => c.startsWith(parts[0]));
+                if (matches.length === 1) {
+                    input.value = matches[0] + ' ';
+                } else if (matches.length > 1) {
+                    out(matches.join('  '));
+                }
+            } else if (parts.length === 2 && (parts[0] === 'cat' || parts[0] === 'ls')) {
+                // Complete filename
+                const files = Object.keys(currentDir);
+                const matches = files.filter(f => f.startsWith(parts[1]));
+                if (matches.length === 1) {
+                    input.value = `${parts[0]} ${matches[0]}`;
+                } else if (matches.length > 1) {
+                    out(matches.join('  '));
+                }
+            }
+            updateCursorPos();
+        }
 
         pasteArea.addEventListener('keydown', async (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
