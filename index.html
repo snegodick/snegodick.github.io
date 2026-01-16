@@ -354,11 +354,32 @@ Type 'help' for available commands.</div>
             term.scrollTop = term.scrollHeight;
         }
 
+        function generatePhonetic(length) {
+            const vowels = 'aeiou';
+            const consonants = 'bcdfghjklmnpqrstvwxyz';
+            let word = '';
+            for (let i = 0; i < length; i++) {
+                word += (i % 2 === 0) 
+                    ? consonants.charAt(Math.floor(Math.random() * consonants.length))
+                    : vowels.charAt(Math.floor(Math.random() * vowels.length));
+            }
+            return word;
+        }
+
+        function generateComplex(length) {
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+            let retVal = "";
+            for (let i = 0; i < length; ++i) {
+                retVal += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            return retVal;
+        }
+
         function processCmd(cmd) {
             const parts = cmd.split(' ');
             const command = parts[0].toLowerCase();
             switch(command) {
-                case 'help': out('Available: ls, cat, ps, w, date, echo, clear, exit, new, qr [text]'); break;
+                case 'help': out('Available: ls, cat, ps, w, date, echo, clear, exit, new, qr [text], pwgen [len]'); break;
                 case 'ls': out(Object.keys(currentDir).join('  ')); break;
                 case 'date': out(new Date().toString()); break;
                 case 'echo': out(parts.slice(1).join(' ')); break;
@@ -402,6 +423,14 @@ Type 'help' for available commands.</div>
                     } catch (err) {
                         out('Error: Failed to generate QR code. Text might be too long.');
                     }
+                    break;
+                case 'pwgen':
+                    const len = parseInt(parts[1]) || 8;
+                    let pwOutput = '--- PRONOUNCEABLE ---\n';
+                    for (let i = 0; i < 10; i++) pwOutput += generatePhonetic(len) + '\n';
+                    pwOutput += '\n--- COMPLEX ---\n';
+                    for (let i = 0; i < 5; i++) pwOutput += generateComplex(len) + '\n';
+                    out(pwOutput.trim());
                     break;
                 case 'exit': out('Session terminated. Please close your browser.'); input.disabled = true; break;
                 case 'clear': 
