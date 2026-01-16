@@ -39,7 +39,7 @@
         }
         .prompt { color: #ff00ff; margin-right: 10px; }
         .output { margin-bottom: 10px; white-space: pre-wrap; }
-        #cursor-glow { position: fixed; width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,255,65,0.05) 0%, transparent 70%); pointer-events: none; transform: translate(-50%, -50%); z-index: 5; }
+        #cursor-glow { position: fixed; width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,255,65,0.05) 0%, transparent 70%); pointer-events: none; transform: translate(-50%, -50%); will-change: transform; z-index: 5; }
         .cursor { 
             width: 10px; 
             height: 1.2rem; 
@@ -181,7 +181,10 @@ Type 'help' for available commands.</div>
             drops = Array(columns).fill(1);
         }
 
-        window.addEventListener('resize', initMatrix);
+        window.addEventListener('resize', () => {
+            initMatrix();
+            updateCursorPos();
+        });
         initMatrix();
 
         function drawMatrix() {
@@ -196,13 +199,18 @@ Type 'help' for available commands.</div>
                 drops[i]++;
             }
         }
-        setInterval(drawMatrix, 35);
+        
+        function animateMatrix() {
+            drawMatrix();
+            requestAnimationFrame(animateMatrix);
+        }
+        animateMatrix();
 
         // 2. Mouse Effect
         const glow = document.getElementById('cursor-glow');
         window.addEventListener('mousemove', e => {
-            glow.style.left = e.clientX + 'px';
-            glow.style.top = e.clientY + 'px';
+            // Используем translate3d для GPU ускорения
+            glow.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
             glow.style.opacity = (Math.random() * 0.1 + 0.2).toString();
         });
 
@@ -217,6 +225,7 @@ Type 'help' for available commands.</div>
             'projects': { 'bot.sh': '#!/bin/bash\necho "Scanning..."', 'core.c': '// Kernel source' }
         };
         let currentDir = fs;
+        let charWidth = 0; // Переменная для хранения ширины символа
 
         async function compressAndEncode(text) {
             const stream = new Blob([text]).stream();
@@ -229,7 +238,16 @@ Type 'help' for available commands.</div>
                 chunks.push(value);
             }
             const buffer = await new Blob(chunks).arrayBuffer();
-            return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+            
+            // Оптимизированное кодирование без риска переполнения стека
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            
+            return btoa(binary)
                 .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
 
@@ -247,19 +265,22 @@ Type 'help' for available commands.</div>
         }
 
         function updateCursorPos() {
-            const span = document.createElement('span');
-            span.style.visibility = 'hidden';
-            span.style.position = 'absolute';
-            span.style.whiteSpace = 'pre';
-            span.style.font = window.getComputedStyle(input).font;
-            span.textContent = input.value;
-            document.body.appendChild(span);
-            
-            const width = span.getBoundingClientRect().width;
+            // Если ширина символа еще не измерена, измеряем её один раз
+            if (charWidth === 0) {
+                const span = document.createElement('span');
+                span.style.visibility = 'hidden';
+                span.style.position = 'absolute';
+                span.style.whiteSpace = 'pre';
+                span.style.font = window.getComputedStyle(input).font;
+                span.textContent = 'M'; // Используем символ 'M' для моноширинного шрифта
+                document.body.appendChild(span);
+                charWidth = span.getBoundingClientRect().width;
+                document.body.removeChild(span);
+            }
+
             const promptWidth = document.querySelector('.prompt').getBoundingClientRect().width;
-            
-            cursor.style.left = (promptWidth + width + 10) + 'px';
-            document.body.removeChild(span);
+            // Математический расчет позиции вместо измерения всего текста
+            cursor.style.left = (promptWidth + (charWidth * input.value.length)) + 'px';
         }
 
         // Global click handler to maintain focus
@@ -278,7 +299,11 @@ Type 'help' for available commands.</div>
             if (e.key === 'Enter') {
                 const val = input.value.trim();
                 const line = document.createElement('div');
-                line.innerHTML = `<span class="prompt">root@ovrnet:~#</span> ${val}`;
+                
+                // Безопасный вывод: HTML для промпта, текст для ввода пользователя
+                line.innerHTML = '<span class="prompt">root@ovrnet:~#</span> ';
+                line.appendChild(document.createTextNode(val));
+                
                 history.appendChild(line);
                 processCmd(val);
                 input.value = '';
