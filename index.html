@@ -183,6 +183,8 @@ Type 'help' for available commands.</div>
 
         window.addEventListener('resize', () => {
             initMatrix();
+            // Recalculate prompt width on resize
+            cachedPromptWidth = document.querySelector('.prompt').getBoundingClientRect().width;
             updateCursorPos();
         });
         initMatrix();
@@ -223,6 +225,7 @@ Type 'help' for available commands.</div>
         };
         let currentDir = fs;
         let charWidth = 0; // Переменная для хранения ширины символа
+        let cachedPromptWidth = 0; // Add this new variable
 
         async function compressAndEncode(text) {
             const stream = new Blob([text]).stream();
@@ -262,26 +265,36 @@ Type 'help' for available commands.</div>
         }
 
         function updateCursorPos() {
-            // Если ширина символа еще не измерена, измеряем её один раз
+            // Calculate char width if not set
             if (charWidth === 0) {
                 const span = document.createElement('span');
                 span.style.visibility = 'hidden';
                 span.style.position = 'absolute';
                 span.style.whiteSpace = 'pre';
                 span.style.font = window.getComputedStyle(input).font;
-                span.textContent = 'M'; // Используем символ 'M' для моноширинного шрифта
+                span.textContent = 'M';
                 document.body.appendChild(span);
                 charWidth = span.getBoundingClientRect().width;
                 document.body.removeChild(span);
             }
 
-            const promptWidth = document.querySelector('.prompt').getBoundingClientRect().width;
-            // Математический расчет позиции вместо измерения всего текста
-            cursor.style.left = (promptWidth + (charWidth * input.value.length)) + 'px';
+            // Calculate and cache prompt width if not set
+            if (cachedPromptWidth === 0) {
+                cachedPromptWidth = document.querySelector('.prompt').getBoundingClientRect().width;
+            }
+
+            // Use cached value for performance
+            cursor.style.left = (cachedPromptWidth + (charWidth * input.value.length)) + 'px';
         }
 
         // Global click handler to maintain focus
         document.addEventListener('click', () => {
+            // Check if user is selecting text
+            const selection = window.getSelection();
+            if (selection.toString().length > 0) {
+                return; // Do not steal focus if selecting text
+            }
+
             if (pasteArea.style.display === 'block') {
                 pasteArea.focus();
             } else {
