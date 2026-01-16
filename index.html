@@ -137,7 +137,6 @@
     <canvas id="canvas"></canvas>
     <div id="terminal">
         <div class="output">OVRNET(tm) Kernel 1.0.9-p2 (tty0)
-Connecting to IRC... [OK]
 Type 'help' for available commands.</div>
         <div id="history"></div>
         <textarea id="paste-area" placeholder="Paste your code here... (Ctrl+Enter to save)"></textarea>
@@ -192,7 +191,7 @@ Type 'help' for available commands.</div>
         const pasteArea = document.getElementById('paste-area');
         const fs = {
             'about.txt': 'OVRNET: The next generation of decentralized IRC networks.',
-            'contact.txt': 'IRC: #ovrnet on EFNet\nMail: admin@ovrnet.com',
+            'contact.txt': 'IRC: #russia on DALnet\nMail: root@ovrnet.com',
             'projects': { 'bot.sh': '#!/bin/bash\necho "Scanning..."', 'core.c': '// Kernel source' }
         };
         let currentDir = fs;
@@ -305,14 +304,12 @@ Type 'help' for available commands.</div>
             const parts = cmd.split(' ');
             const command = parts[0].toLowerCase();
             switch(command) {
-                case 'help': out('Available: ls, cat, uname, ifconfig, ps, w, date, echo, clear, exit, new, qr [text]'); break;
+                case 'help': out('Available: ls, cat, ps, w, date, echo, clear, exit, new, qr [text]'); break;
                 case 'ls': out(Object.keys(currentDir).join('  ')); break;
-                case 'uname': out('OVRNET-OS 1.0.0-release x86_64'); break;
                 case 'date': out(new Date().toString()); break;
                 case 'echo': out(parts.slice(1).join(' ')); break;
-                case 'ifconfig': out('eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 1500\ninet 192.168.1.101 netmask 255.255.255.0'); break;
                 case 'ps': out('PID TTY          TIME CMD\n 124 tty0     00:00:01 bash\n 542 tty0     00:00:00 ps'); break;
-                case 'w': out(' 12:00:01 up 42 days, 1 user, load average: 0.01'); break;
+                case 'w': out(' 12:00:01 up 42 days, 2 users, load averages: 0.01 0.01 0.00'); break;
                 case 'cat': 
                     const file = parts[1];
                     if (!file) { out('usage: cat [file]'); break; }
